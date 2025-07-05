@@ -22,9 +22,8 @@ export async function POST(req: NextRequest) {
 
     const data = await response.json();
 
-    if (response.status === 200 && data.document) {
-      // Normalize to always return an array for consistency
-      return NextResponse.json({ documents: [data.document] }, { status: 200 });
+    if (response.status === 200 && data.documents) {
+      return NextResponse.json({ documents: data.documents }, { status: 200 });
     } else if (data.detail) {
       // 400/402/422 error
       if (typeof data.detail === 'string') {
