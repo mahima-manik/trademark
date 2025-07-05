@@ -1,49 +1,6 @@
 import React from "react";
-import { FaFolder, FaFileAlt } from "react-icons/fa";
-import Link from "next/link";
-
-function Sidebar() {
-  return (
-    <aside className="w-64 bg-white border-r border-gray-200 p-6 flex flex-col">
-      <h2 className="text-lg font-semibold mb-4">Collections</h2>
-      <div className="flex-1 space-y-6 overflow-y-auto">
-        {/* Collection Placeholder */}
-        <div className="border rounded-lg p-3 hover:bg-gray-100 cursor-pointer">
-          <div className="flex items-center gap-2 font-medium">
-            <FaFolder className="text-gray-500" /> Collection 1
-          </div>
-          <div className="text-xs text-gray-500 mt-1">Metadata: Placeholder</div>
-          <ul className="mt-2 ml-2 list-disc text-sm text-gray-700">
-            <li className="flex items-center gap-2">
-              <FaFileAlt className="text-gray-400" />
-              <Link href="/dashboard/collection1/doc1" className="hover:underline">Document 1</Link>
-            </li>
-            <li className="flex items-center gap-2">
-              <FaFileAlt className="text-gray-400" />
-              <Link href="/dashboard/collection1/doc2" className="hover:underline">Document 2</Link>
-            </li>
-          </ul>
-        </div>
-        <div className="border rounded-lg p-3 hover:bg-gray-100 cursor-pointer">
-          <div className="flex items-center gap-2 font-medium">
-            <FaFolder className="text-gray-500" /> Collection 2
-          </div>
-          <div className="text-xs text-gray-500 mt-1">Metadata: Placeholder</div>
-          <ul className="mt-2 ml-2 list-disc text-sm text-gray-700">
-            <li className="flex items-center gap-2">
-              <FaFileAlt className="text-gray-400" />
-              <Link href="/dashboard/collection2/docA" className="hover:underline">Document A</Link>
-            </li>
-            <li className="flex items-center gap-2">
-              <FaFileAlt className="text-gray-400" />
-              <Link href="/dashboard/collection2/docB" className="hover:underline">Document B</Link>
-            </li>
-          </ul>
-        </div>
-      </div>
-    </aside>
-  );
-}
+import Collections from "@/components/Collections";
+import { Collection } from "@/models/model";
 
 function ChatArea() {
   return (
@@ -84,10 +41,34 @@ function ChatHistory() {
   );
 }
 
+const collectionsData: Collection[] = [
+  {
+    name: "Collection 1",
+    metadata: "Metadata: Placeholder",
+    documents: [
+      { name: "Document 1", url: "/dashboard/collection1/doc1" },
+      { name: "Document 2", url: "/dashboard/collection1/doc2" },
+    ],
+  },
+  {
+    name: "Collection 2",
+    metadata: "Metadata: Placeholder",
+    documents: [
+      { name: "Document A", url: "/dashboard/collection2/docA" },
+      { name: "Document B", url: "/dashboard/collection2/docB" },
+    ],
+  },
+  {
+    name: "Empty Collection",
+    metadata: "No docs yet",
+    documents: [],
+  },
+];
+
 export default function Dashboard() {
   return (
     <div className="min-h-screen flex font-sans bg-gray-50">
-      <Sidebar />
+      <Collections collections={collectionsData} />
       <ChatArea />
       <ChatHistory />
     </div>
