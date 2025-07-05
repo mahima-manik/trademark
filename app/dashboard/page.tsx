@@ -1,4 +1,6 @@
-import React from "react";
+"use client";
+
+import React, { useEffect, useState } from "react";
 import Collections from "@/components/Collections";
 import { Collection } from "@/models/model";
 
@@ -41,33 +43,40 @@ function ChatHistory() {
   );
 }
 
-const collectionsData: Collection[] = [
-  {
-    name: "Collection 1",
-    documents: [
-      { name: "Document 1", url: "/dashboard/collection1/doc1", metadata: { author: "Alice", tags: ["tag1", "tag2"] } },
-      { name: "Document 2", url: "/dashboard/collection1/doc2", metadata: { author: "Bob", tags: ["tag3"] } },
-    ],
-  },
-  {
-    name: "Collection 2",
-    documents: [
-      { name: "Document A", url: "/dashboard/collection2/docA", metadata: { author: "Carol", tags: ["tagA"] } },
-      { name: "Document B", url: "/dashboard/collection2/docB", metadata: { author: "Dave", tags: ["tagB", "tagC"] } },
-    ],
-  },
-  {
-    name: "Empty Collection",
-    documents: [],
-  },
-];
-
 export default function Dashboard() {
+  const [collections, setCollections] = useState<Collection[]>([]);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    fetch('/api/collections', { method: 'POST' })
+      .then(res => res.json())
+      .then(data => {
+        if (data.collections) {
+          setCollections(data.collections);
+          setError(null);
+        } else if (data.error) {
+          setError(data.error);
+          setCollections([]);
+        }
+      })
+      .catch(err => {
+        setError('Network error: ' + err.message);
+        setCollections([]);
+      });
+  }, []);
+
   return (
     <div className="min-h-screen flex font-sans bg-gray-50">
-      <Collections collections={collectionsData} />
-      <ChatArea />
-      <ChatHistory />
+      <div className="flex flex-col flex-1">
+        {error && (
+          <div className="bg-red-100 text-red-700 p-2 text-center text-sm">{error}</div>
+        )}
+        <div className="flex flex-1">
+          <Collections collections={collections} />
+          <ChatArea />
+          <ChatHistory />
+        </div>
+      </div>
     </div>
   );
 }
