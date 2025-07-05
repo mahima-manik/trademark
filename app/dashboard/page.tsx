@@ -44,23 +44,20 @@ function ChatHistory() {
 const collectionsData: Collection[] = [
   {
     name: "Collection 1",
-    metadata: "Metadata: Placeholder",
     documents: [
-      { name: "Document 1", url: "/dashboard/collection1/doc1" },
-      { name: "Document 2", url: "/dashboard/collection1/doc2" },
+      { name: "Document 1", url: "/dashboard/collection1/doc1", metadata: { author: "Alice", tags: ["tag1", "tag2"] } },
+      { name: "Document 2", url: "/dashboard/collection1/doc2", metadata: { author: "Bob", tags: ["tag3"] } },
     ],
   },
   {
     name: "Collection 2",
-    metadata: "Metadata: Placeholder",
     documents: [
-      { name: "Document A", url: "/dashboard/collection2/docA" },
-      { name: "Document B", url: "/dashboard/collection2/docB" },
+      { name: "Document A", url: "/dashboard/collection2/docA", metadata: { author: "Carol", tags: ["tagA"] } },
+      { name: "Document B", url: "/dashboard/collection2/docB", metadata: { author: "Dave", tags: ["tagB", "tagC"] } },
     ],
   },
   {
     name: "Empty Collection",
-    metadata: "No docs yet",
     documents: [],
   },
 ];
