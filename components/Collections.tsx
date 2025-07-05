@@ -20,7 +20,7 @@ export default function Collections({ collections }: { collections: Collection[]
                   <li key={docIdx} className="flex flex-col gap-1 mb-2">
                     <div className="flex items-center gap-2">
                       <FaFileAlt className="text-gray-400" />
-                      <Link href={doc.url} className="hover:underline">{doc.name}</Link>
+                      <Link href={doc.file_url} className="hover:underline">{doc.path}</Link>
                     </div>
                     {doc.metadata && (
                       <div className="ml-6 text-xs text-gray-500">
