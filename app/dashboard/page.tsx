@@ -30,7 +30,7 @@ function CollectionsSidebar({ collections, isOpen, onClose }: {
         ${isOpen ? 'flex' : 'hidden md:flex'}
       `}>
         <div className="flex items-center justify-between mb-4">
-          <h2 className="text-base md:text-lg font-semibold">Collections</h2>
+          <h2 className="text-base md:text-lg font-semibold text-gray-900">Collections</h2>
           <button
             onClick={onClose}
             className="md:hidden p-1 hover:bg-gray-100 rounded"
@@ -52,7 +52,7 @@ export default function Dashboard() {
   const [showCollections, setShowCollections] = useState(false);
 
   useEffect(() => {
-    fetch('/api/collections', { method: 'POST' })
+    fetch('/api/collections', { method: 'GET' })
       .then(res => res.json())
       .then(data => {
         if (data.collections) {
@@ -95,7 +95,7 @@ export default function Dashboard() {
             className="md:hidden flex items-center gap-2 px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-100 rounded"
           >
             <FaBars className="w-4 h-4" />
-            Collections
+            <span className="text-sm text-gray-700">Collections</span>
           </button>
           
 
