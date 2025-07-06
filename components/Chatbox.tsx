@@ -18,6 +18,12 @@ export default function Chatbox({ collections }: { collections: Collection[] }) 
   const [selectedCollections, setSelectedCollections] = useState<string[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
+  const messagesEndRef = useRef<HTMLDivElement>(null);
+
+  // Auto-scroll to bottom when new messages are added
+  useEffect(() => {
+    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+  }, [messages]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -161,60 +167,69 @@ export default function Chatbox({ collections }: { collections: Collection[] }) 
   };
 
   return (
-    <main className="flex-1 flex flex-col min-w-0 bg-white">
+    <div className="flex flex-col h-full bg-white">
+      {/* Messages container */}
       <div className="flex-1 overflow-y-auto">
         {messages.length === 0 ? (
           <div className="flex items-center justify-center h-full text-gray-500">
-            Start a conversation...
+            <div className="text-center">
+              <div className="text-lg font-medium mb-2">Welcome to Document Search</div>
+              <div className="text-sm">Start a conversation by typing your question below</div>
+            </div>
           </div>
         ) : (
-          <div className="max-w-3xl mx-auto px-4 py-6 space-y-6">
-            {messages.map((message) => (
-              <div key={message.id} className="group">
-                <div className={`flex ${message.sender === 'user' ? 'justify-end' : 'justify-start'}`}>
-                  <div className="max-w-[70%]">
-                    <div className={`p-3 rounded-lg ${
-                      message.sender === 'user'
-                        ? 'text-white ml-auto'
-                        : 'bg-gray-100 text-gray-800'
-                    }`}
-                    style={message.sender === 'user' ? { backgroundColor: PRIMARY_COLOR } : {}}
-                    >
-                      {message.sender === 'user' ? (
-                        <p className="text-sm leading-relaxed whitespace-pre-line">{message.text}</p>
-                      ) : (
-                        renderMessageContent(message)
-                      )}
+          <div className="max-w-4xl mx-auto px-4 py-6">
+            <div className="space-y-6">
+              {messages.map((message) => (
+                <div key={message.id} className="group">
+                  <div className={`flex ${message.sender === 'user' ? 'justify-end' : 'justify-start'}`}>
+                    <div className={`max-w-[85%] ${message.sender === 'user' ? 'max-w-[70%]' : 'max-w-[85%]'}`}>
+                      <div className={`p-4 rounded-lg ${
+                        message.sender === 'user'
+                          ? 'text-white ml-auto'
+                          : 'bg-gray-100 text-gray-800'
+                      }`}
+                      style={message.sender === 'user' ? { backgroundColor: PRIMARY_COLOR } : {}}
+                      >
+                        {message.sender === 'user' ? (
+                          <p className="text-sm leading-relaxed whitespace-pre-line">{message.text}</p>
+                        ) : (
+                          renderMessageContent(message)
+                        )}
+                      </div>
                     </div>
                   </div>
                 </div>
-              </div>
-            ))}
-            {isLoading && (
-              <div className="flex justify-start">
-                <div className="max-w-[70%]">
-                  <div className="p-3 rounded-lg bg-gray-100 text-gray-800">
-                    <div className="flex items-center space-x-2">
-                      <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-gray-600"></div>
-                      <p className="text-sm">Searching documents...</p>
+              ))}
+              {isLoading && (
+                <div className="flex justify-start">
+                  <div className="max-w-[85%]">
+                    <div className="p-4 rounded-lg bg-gray-100 text-gray-800">
+                      <div className="flex items-center space-x-2">
+                        <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-gray-600"></div>
+                        <p className="text-sm">Searching documents...</p>
+                      </div>
                     </div>
                   </div>
                 </div>
-              </div>
-            )}
+              )}
+              <div ref={messagesEndRef} />
+            </div>
           </div>
         )}
       </div>
       
-      <div className="border-t border-gray-200 p-4">
-        <div className="max-w-3xl mx-auto">
-          <form className="flex gap-2" onSubmit={handleSubmit}>
+      {/* Input area - fixed at bottom */}
+      <div className="flex-shrink-0 border-t border-gray-200 bg-white">
+        <div className="max-w-4xl mx-auto p-4">
+          <form className="flex gap-3" onSubmit={handleSubmit}>
             <div className="relative flex items-center" ref={dropdownRef}>
               <button
                 type="button"
                 onClick={() => setShowCollections(!showCollections)}
                 className="flex items-center justify-center w-10 h-10 rounded-lg border border-gray-300 hover:bg-gray-50 transition-colors"
                 disabled={isLoading}
+                title="Select collections"
               >
                 <FaPlus className="w-4 h-4 text-gray-500" />
               </button>
@@ -261,26 +276,28 @@ export default function Chatbox({ collections }: { collections: Collection[] }) 
               )}
             </div>
             
-            <input
-              type="text"
-              className="flex-1 border border-gray-300 rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white text-gray-900 placeholder-gray-500"
-              placeholder="Ask anything"
-              value={inputValue}
-              onChange={(e) => setInputValue(e.target.value)}
-              disabled={isLoading}
-            />
-            <button
-              type="submit"
-              disabled={!inputValue.trim() || isLoading}
-              className={`px-4 py-3 rounded-lg font-medium transition-colors ${
-                inputValue.trim() && !isLoading
-                  ? 'text-white hover:opacity-90'
-                  : 'bg-gray-300 text-gray-500 cursor-not-allowed'
-              }`}
-              style={inputValue.trim() && !isLoading ? { backgroundColor: PRIMARY_COLOR } : {}}
-            >
-              {isLoading ? 'Searching...' : 'Send'}
-            </button>
+            <div className="flex-1 relative">
+              <input
+                type="text"
+                className="w-full border border-gray-300 rounded-lg px-4 py-3 pr-20 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white text-gray-900 placeholder-gray-500 text-sm"
+                placeholder="Ask anything about your documents..."
+                value={inputValue}
+                onChange={(e) => setInputValue(e.target.value)}
+                disabled={isLoading}
+              />
+              <button
+                type="submit"
+                disabled={!inputValue.trim() || isLoading}
+                className={`absolute right-2 top-1/2 transform -translate-y-1/2 px-4 py-2 rounded-md font-medium text-sm transition-colors ${
+                  inputValue.trim() && !isLoading
+                    ? 'text-white hover:opacity-90'
+                    : 'bg-gray-300 text-gray-500 cursor-not-allowed'
+                }`}
+                style={inputValue.trim() && !isLoading ? { backgroundColor: PRIMARY_COLOR } : {}}
+              >
+                {isLoading ? 'Searching...' : 'Send'}
+              </button>
+            </div>
           </form>
 
           {/* Selected collections display */}
@@ -289,12 +306,12 @@ export default function Chatbox({ collections }: { collections: Collection[] }) 
               {selectedCollections.map((collectionName) => (
                 <span
                   key={collectionName}
-                  className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800"
+                  className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800"
                 >
                   {collectionName}
                   <button
                     onClick={() => toggleCollection(collectionName)}
-                    className="ml-1 text-blue-600 hover:text-blue-800"
+                    className="ml-2 text-blue-600 hover:text-blue-800"
                     disabled={isLoading}
                   >
                     ×
@@ -305,6 +322,6 @@ export default function Chatbox({ collections }: { collections: Collection[] }) 
           )}
         </div>
       </div>
-    </main>
+    </div>
   );
 }
