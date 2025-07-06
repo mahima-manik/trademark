@@ -12,6 +12,8 @@ function CollectionItem({ collection }: { collection: Collection }) {
   const [showAddForm, setShowAddForm] = useState(false);
   const [documentText, setDocumentText] = useState('');
   const [documentPath, setDocumentPath] = useState('');
+  const [uploadMode, setUploadMode] = useState<'text' | 'file'>('text');
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
 
   const fetchDocuments = async () => {
     setLoading(true);
@@ -41,16 +43,53 @@ function CollectionItem({ collection }: { collection: Collection }) {
     }
   };
 
+  const fileToBase64 = (file: File): Promise<string> => {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.readAsDataURL(file);
+      reader.onload = () => {
+        const result = reader.result as string;
+        // Remove the data URL prefix (e.g., "data:image/png;base64,")
+        const base64 = result.split(',')[1];
+        resolve(base64);
+      };
+      reader.onerror = error => reject(error);
+    });
+  };
+
   const handleAddDocument = async () => {
-    if (!documentText.trim() || !documentPath.trim()) {
-      setUploadError('Both text and path are required');
-      return;
+    if (uploadMode === 'text') {
+      if (!documentText.trim() || !documentPath.trim()) {
+        setUploadError('Both text and path are required');
+        return;
+      }
+    } else {
+      if (!selectedFile || !documentPath.trim()) {
+        setUploadError('Both file and path are required');
+        return;
+      }
     }
 
     setUploading(true);
     setUploadError(null);
 
     try {
+      let content;
+      
+      if (uploadMode === 'text') {
+        content = {
+          type: 'text',
+          text: documentText
+        };
+      } else {
+        // Convert file to base64
+        const base64Data = await fileToBase64(selectedFile!);
+        content = {
+          type: 'auto',
+          base64_data: base64Data
+        };
+      }
+
       const res = await fetch('/api/documents', {
         method: 'POST',
         headers: {
@@ -59,10 +98,7 @@ function CollectionItem({ collection }: { collection: Collection }) {
         body: JSON.stringify({
           collection_name: collection.name,
           path: documentPath,
-          content: {
-            type: 'text',
-            text: documentText
-          },
+          content: content,
           metadata: {},
           overwrite: false
         }),
@@ -76,6 +112,7 @@ function CollectionItem({ collection }: { collection: Collection }) {
         // Clear the form
         setDocumentText('');
         setDocumentPath('');
+        setSelectedFile(null);
         setShowAddForm(false);
       } else {
         setUploadError(data.error || 'Upload failed');
@@ -84,6 +121,17 @@ function CollectionItem({ collection }: { collection: Collection }) {
       setUploadError('Network error: ' + err.message);
     } finally {
       setUploading(false);
+    }
+  };
+
+  const handleFileSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (file) {
+      setSelectedFile(file);
+      // Auto-fill path with filename if empty
+      if (!documentPath) {
+        setDocumentPath(file.name);
+      }
     }
   };
 
@@ -119,6 +167,36 @@ function CollectionItem({ collection }: { collection: Collection }) {
       {showAddForm && (
         <div className="mt-3 p-3 bg-gray-50 rounded border">
           <div className="space-y-3">
+            {/* Mode selector */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Upload Mode
+              </label>
+              <div className="flex gap-4">
+                <label className="flex items-center">
+                  <input
+                    type="radio"
+                    value="text"
+                    checked={uploadMode === 'text'}
+                    onChange={(e) => setUploadMode(e.target.value as 'text' | 'file')}
+                    className="mr-2"
+                  />
+                  <span className="text-sm text-gray-700">Text Content</span>
+                </label>
+                <label className="flex items-center">
+                  <input
+                    type="radio"
+                    value="file"
+                    checked={uploadMode === 'file'}
+                    onChange={(e) => setUploadMode(e.target.value as 'text' | 'file')}
+                    className="mr-2"
+                  />
+                  <span className="text-sm text-gray-700">File Upload</span>
+                </label>
+              </div>
+            </div>
+
+            {/* Document path */}
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
                 Document Path
@@ -131,17 +209,38 @@ function CollectionItem({ collection }: { collection: Collection }) {
                 className="w-full p-2 text-sm border rounded bg-white text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500"
               />
             </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Document Content
-              </label>
-              <textarea
-                placeholder="Enter your document content here..."
-                value={documentText}
-                onChange={(e) => setDocumentText(e.target.value)}
-                className="w-full p-2 text-sm border rounded bg-white text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 h-20 resize-none"
-              />
-            </div>
+
+            {/* Content input based on mode */}
+            {uploadMode === 'text' ? (
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Document Content
+                </label>
+                <textarea
+                  placeholder="Enter your document content here..."
+                  value={documentText}
+                  onChange={(e) => setDocumentText(e.target.value)}
+                  className="w-full p-2 text-sm border rounded bg-white text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 h-20 resize-none"
+                />
+              </div>
+            ) : (
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Select File
+                </label>
+                <input
+                  type="file"
+                  onChange={handleFileSelect}
+                  className="w-full p-2 text-sm border rounded bg-white text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                />
+                {selectedFile && (
+                  <div className="mt-1 text-xs text-gray-600">
+                    Selected: {selectedFile.name} ({Math.round(selectedFile.size / 1024)} KB)
+                  </div>
+                )}
+              </div>
+            )}
+
             <div className="flex gap-2 pt-1">
               <button
                 onClick={handleAddDocument}
@@ -155,6 +254,7 @@ function CollectionItem({ collection }: { collection: Collection }) {
                   setShowAddForm(false);
                   setDocumentText('');
                   setDocumentPath('');
+                  setSelectedFile(null);
                   setUploadError(null);
                 }}
                 className="px-3 py-1 bg-gray-500 text-white text-sm rounded hover:bg-gray-600"
