@@ -4,8 +4,12 @@ const ZEROENTROPY_API_KEY = process.env.ZEROENTROPY_API_KEY;
 
 export async function GET(req: NextRequest) {
   try {
-    const body = await req.json();
-    const { collection_name, limit = 1024, path_prefix = '', path_gt = '' } = body;
+    // Read from query parameters instead of request body
+    const { searchParams } = new URL(req.url);
+    const collection_name = searchParams.get('collection_name');
+    const limit = parseInt(searchParams.get('limit') || '1024');
+    const path_prefix = searchParams.get('path_prefix') || '';
+    const path_gt = searchParams.get('path_gt') || '';
 
     if (!collection_name) {
       return NextResponse.json({ error: 'collection_name is required' }, { status: 400 });
@@ -35,6 +39,7 @@ export async function GET(req: NextRequest) {
 export async function POST(req: NextRequest) {
   try {
     const body = await req.json();
+    console.log(body);
     const { collection_name, path, content, metadata = {}, overwrite = false } = body;
 
     if (!collection_name) {

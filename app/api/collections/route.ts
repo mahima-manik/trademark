@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server';
 
 const ZEROENTROPY_API_KEY = process.env.ZEROENTROPY_API_KEY;
 
-export async function POST() {
+export async function GET() {
   try {
     const response = await fetch('https://api.zeroentropy.dev/v1/collections/get-collection-list', {
       method: 'POST',
