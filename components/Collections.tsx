@@ -36,12 +36,12 @@ function CollectionItem({ collection }: { collection: Collection }) {
   return (
     <div className="border rounded-lg p-3 hover:bg-gray-100 cursor-pointer">
       <div className="flex items-center gap-2 font-medium justify-between">
-        <span className="flex items-center gap-2">
-          <FaFolder className="text-gray-500" /> {collection.name}
+        <span className="flex items-center gap-2 text-gray-900">
+          <FaFolder className="text-gray-700" /> {collection.name}
         </span>
         <div className="flex items-center gap-2">
           <button
-            className="p-1 text-gray-500 hover:text-gray-700 rounded-full hover:bg-gray-200"
+            className="p-1 text-gray-700 hover:text-gray-900 rounded-full hover:bg-gray-200"
             onClick={fetchDocuments}
             type="button"
             disabled={loading}
@@ -50,9 +50,9 @@ function CollectionItem({ collection }: { collection: Collection }) {
           </button>
         </div>
       </div>
-      {error && <div className="text-xs text-red-500 mt-2">{error}</div>}
+      {error && <div className="text-xs text-red-600 mt-2 font-medium">{error}</div>}
       {loading ? (
-        <div className="mt-2 ml-2 text-xs text-gray-400 italic">Loading...</div>
+        <div className="mt-2 ml-2 text-xs text-gray-600 italic">Loading...</div>
       ) : documents.length > 0 ? (
         <div>
           {documents.map((doc, docIdx) => (
@@ -60,8 +60,8 @@ function CollectionItem({ collection }: { collection: Collection }) {
           ))}
         </div>
       ) : (
-        <div className="mt-2 ml-2 text-xs text-gray-400 italic flex items-center gap-2">
-          <FaFileAlt className="text-gray-200" /> Empty collection
+        <div className="mt-2 ml-2 text-xs text-gray-600 italic flex items-center gap-2">
+          <FaFileAlt className="text-gray-600" /> Empty collection
         </div>
       )}
     </div>
@@ -74,10 +74,10 @@ function DocumentItem({ document }: { document: Document }) {
       className="mt-2 ml-2 text-xs font-mono bg-gray-100 p-2 rounded hover:bg-gray-200 cursor-pointer"
       onClick={() => window.open(document.file_url, '_blank')}
     >
-      <div className="flex items-center gap-2">
-        <FaFileAlt className="text-gray-400" /> {document.path}
+      <div className="flex items-center gap-2 text-gray-900">
+        <FaFileAlt className="text-gray-700" /> {document.path}
       </div>
-      <div className="text-xs text-gray-500 mt-1">Status: {document.index_status}</div>
+      <div className="text-xs text-gray-700 mt-1">Status: {document.index_status}</div>
     </div>
   );
 }
