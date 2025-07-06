@@ -15,12 +15,13 @@ export default function Chatbox({ collections }: { collections: Collection[] }) 
   const [inputValue, setInputValue] = useState('');
   const [showCollections, setShowCollections] = useState(false);
   const [selectedCollections, setSelectedCollections] = useState<string[]>([]);
+  const [isLoading, setIsLoading] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (!inputValue.trim()) return;
+    if (!inputValue.trim() || isLoading) return;
 
     // Add user message
     const userMessage: Message = {
@@ -29,24 +30,56 @@ export default function Chatbox({ collections }: { collections: Collection[] }) 
       sender: 'user'
     };
 
-    // Create bot response with selected collections info
-    let botResponseText = 'Hi';
-    
-    if (selectedCollections.length > 0) {
-      botResponseText += `\n\nSelected collections: ${selectedCollections.join(', ')}`;
-    } else {
-      botResponseText += '\n\nNo collections selected.';
-    }
-
-    // Add bot response
-    const botMessage: Message = {
-      id: (Date.now() + 1).toString(),
-      text: botResponseText,
-      sender: 'bot'
-    };
-
-    setMessages(prev => [...prev, userMessage, botMessage]);
+    setMessages(prev => [...prev, userMessage]);
     setInputValue('');
+    setIsLoading(true);
+
+    try {
+      // Call the API
+      const response = await fetch('/api/rank', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          message: inputValue,
+          selectedCollections: selectedCollections,
+        }),
+      });
+
+      const data = await response.json();
+
+      if (response.ok) {
+        // Add bot response
+        const botMessage: Message = {
+          id: (Date.now() + 1).toString(),
+          text: data.response,
+          sender: 'bot'
+        };
+
+        setMessages(prev => [...prev, botMessage]);
+      } else {
+        // Handle error
+        const errorMessage: Message = {
+          id: (Date.now() + 1).toString(),
+          text: `Error: ${data.error || 'Something went wrong'}`,
+          sender: 'bot'
+        };
+
+        setMessages(prev => [...prev, errorMessage]);
+      }
+    } catch (error) {
+      // Handle network error
+      const errorMessage: Message = {
+        id: (Date.now() + 1).toString(),
+        text: 'Error: Failed to connect to the server',
+        sender: 'bot'
+      };
+
+      setMessages(prev => [...prev, errorMessage]);
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   const toggleCollection = (collectionName: string) => {
@@ -95,6 +128,18 @@ export default function Chatbox({ collections }: { collections: Collection[] }) 
                 </div>
               </div>
             ))}
+            {isLoading && (
+              <div className="flex justify-start">
+                <div className="max-w-[70%]">
+                  <div className="p-3 rounded-lg bg-gray-100 text-gray-800">
+                    <div className="flex items-center space-x-2">
+                      <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-gray-600"></div>
+                      <p className="text-sm">Thinking...</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
           </div>
         )}
       </div>
