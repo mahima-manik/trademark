@@ -82,7 +82,7 @@ export default function Dashboard() {
   }, []);
 
   return (
-    <div className="h-screen flex font-sans bg-gray-50 overflow-hidden">
+    <div className="h-screen flex font-sans bg-gray-50">
       {error && (
         <div className="absolute top-0 left-0 right-0 bg-red-100 text-red-700 p-2 text-center text-sm z-30">
           {error}
@@ -98,7 +98,7 @@ export default function Dashboard() {
         />
         
         {/* Chat area - takes up all remaining space */}
-        <div className="flex-1 flex flex-col min-w-0 h-full">
+        <div className="flex-1 flex flex-col h-full overflow-hidden">
           {/* Header with toggle button */}
           <div className="bg-white border-b border-gray-200 p-4 flex items-center justify-between lg:justify-end flex-shrink-0">
             <button
@@ -110,8 +110,8 @@ export default function Dashboard() {
             </button>
           </div>
 
-          {/* Chat container */}
-          <div className="flex-1 min-h-0">
+          {/* Chat container - this is key for proper scrolling */}
+          <div className="flex-1 overflow-hidden">
             <Chatbox collections={collections} />
           </div>
         </div>
