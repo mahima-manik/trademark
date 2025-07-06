@@ -2,72 +2,9 @@
 
 import React, { useEffect, useState } from "react";
 import Collections from "@/components/Collections";
+import Chatbox from "@/components/Chatbox";
 import { Collection } from "@/models/model";
-import { FaBars, FaHistory, FaTimes } from "react-icons/fa";
-
-function ChatArea() {
-  return (
-    <main className="flex-1 flex flex-col items-center justify-center p-4 md:p-8 min-w-0">
-      <div className="w-full max-w-4xl rounded-lg p-4 md:p-6 flex flex-col h-[70vh] md:h-[75vh]">
-        <div className="flex-1 overflow-y-auto">
-          {/* Chat messages placeholder */}
-          <div className="text-gray-400 text-center mt-20">Chat interface placeholder</div>
-        </div>
-        <form className="flex gap-2">
-          <input
-            type="text"
-            className="flex-1 border rounded px-3 py-2 focus:outline-none focus:ring text-sm md:text-base"
-            placeholder="Type your message..."
-            disabled
-          />
-          <button
-            type="submit"
-            className="bg-gray-300 text-gray-600 px-3 md:px-4 py-2 rounded cursor-not-allowed text-sm md:text-base"
-            disabled
-          >
-            Send
-          </button>
-        </form>
-      </div>
-    </main>
-  );
-}
-
-function ChatHistory({ isOpen, onClose }: { isOpen: boolean; onClose: () => void }) {
-  return (
-    <>
-      {/* Overlay for mobile */}
-      {isOpen && (
-        <div 
-          className="fixed inset-0 bg-black bg-opacity-50 z-40 lg:hidden"
-          onClick={onClose}
-        />
-      )}
-      
-      {/* Chat History Sidebar */}
-      <aside className={`
-        fixed lg:relative top-0 right-0 h-full lg:h-auto
-        w-72 bg-white border-l border-gray-200 p-6 flex flex-col
-        transform transition-transform duration-300 ease-in-out z-50
-        ${isOpen ? 'translate-x-0' : 'translate-x-full lg:translate-x-0'}
-        ${isOpen ? 'flex' : 'hidden lg:flex'}
-      `}>
-        <div className="flex items-center justify-between mb-4">
-          <h2 className="text-lg font-semibold">Chat History</h2>
-          <button
-            onClick={onClose}
-            className="lg:hidden p-1 hover:bg-gray-100 rounded"
-          >
-            <FaTimes className="w-4 h-4" />
-          </button>
-        </div>
-        <div className="flex-1 overflow-y-auto text-gray-400 text-center mt-20">
-          Chat history placeholder
-        </div>
-      </aside>
-    </>
-  );
-}
+import { FaBars, FaTimes } from "react-icons/fa";
 
 function CollectionsSidebar({ collections, isOpen, onClose }: { 
   collections: Collection[], 
@@ -113,7 +50,6 @@ export default function Dashboard() {
   const [collections, setCollections] = useState<Collection[]>([]);
   const [error, setError] = useState<string | null>(null);
   const [showCollections, setShowCollections] = useState(false);
-  const [showHistory, setShowHistory] = useState(false);
 
   useEffect(() => {
     fetch('/api/collections', { method: 'POST' })
@@ -139,9 +75,6 @@ export default function Dashboard() {
       if (window.innerWidth >= 768) { // md breakpoint
         setShowCollections(false);
       }
-      if (window.innerWidth >= 1024) { // lg breakpoint
-        setShowHistory(false);
-      }
     };
 
     window.addEventListener('resize', handleResize);
@@ -165,13 +98,7 @@ export default function Dashboard() {
             Collections
           </button>
           
-          <button
-            onClick={() => setShowHistory(true)}
-            className="lg:hidden flex items-center gap-2 px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-100 rounded"
-          >
-            <FaHistory className="w-4 h-4" />
-            History
-          </button>
+
         </div>
 
         <div className="flex flex-1 overflow-hidden">
@@ -183,13 +110,8 @@ export default function Dashboard() {
           />
           
           {/* Chat area - takes up all remaining space */}
-          <ChatArea />
-          
-          {/* Chat history sidebar */}
-          <ChatHistory 
-            isOpen={showHistory}
-            onClose={() => setShowHistory(false)}
-          />
+          <Chatbox collections={collections} />
+
         </div>
       </div>
     </div>
