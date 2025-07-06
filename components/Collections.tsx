@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { FaFolder, FaFileAlt } from "react-icons/fa";
+import { FaFolder, FaFileAlt, FaSync } from "react-icons/fa";
 import { Collection, Document } from "@/models/model";
 
 
@@ -39,14 +39,16 @@ function CollectionItem({ collection }: { collection: Collection }) {
         <span className="flex items-center gap-2">
           <FaFolder className="text-gray-500" /> {collection.name}
         </span>
-        <button
-          className="text-xs px-2 py-1 bg-blue-100 text-blue-700 rounded hover:bg-blue-200"
-          onClick={fetchDocuments}
-          type="button"
-          disabled={loading}
-        >
-          {loading ? 'Loading...' : 'View Documents'}
-        </button>
+        <div className="flex items-center gap-2">
+          <button
+            className="p-1 text-gray-500 hover:text-gray-700 rounded-full hover:bg-gray-200"
+            onClick={fetchDocuments}
+            type="button"
+            disabled={loading}
+          >
+            <FaSync className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
+          </button>
+        </div>
       </div>
       {error && <div className="text-xs text-red-500 mt-2">{error}</div>}
       {loading ? (
@@ -82,16 +84,13 @@ function DocumentItem({ document }: { document: Document }) {
 
 export default function Collections({ collections }: { collections: Collection[] }) {
   return (
-    <aside className="w-64 bg-white border-r border-gray-200 p-6 flex flex-col">
-      <h2 className="text-lg font-semibold mb-4">Collections</h2>
-      <div className="flex-1 space-y-6 overflow-y-auto">
-        {collections.map((collection, idx) => (
-          <CollectionItem
-            key={collection.name}
-            collection={collection}
-          />
-        ))}
-      </div>
-    </aside>
+    <div className="space-y-4 md:space-y-6">
+      {collections.map((collection, idx) => (
+        <CollectionItem
+          key={collection.name}
+          collection={collection}
+        />
+      ))}
+    </div>
   );
 }
