@@ -1,4 +1,4 @@
-import React, { useState, useRef } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import { FaFolder, FaFileAlt, FaSync, FaPlus } from "react-icons/fa";
 import { Collection, Document } from "@/models/model";
 
@@ -134,6 +134,11 @@ function CollectionItem({ collection }: { collection: Collection }) {
       }
     }
   };
+
+  // Auto-fetch documents when component mounts
+  useEffect(() => {
+    fetchDocuments();
+  }, [collection.name]); // Re-fetch if collection name changes
 
   return (
     <div className="border rounded-lg p-3 hover:bg-gray-100">
