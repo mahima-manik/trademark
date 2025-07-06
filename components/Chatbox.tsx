@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect } from "react";
 import { Collection } from "@/models/model";
-import { FaPlus, FaCheck } from "react-icons/fa";
+import { FaPlus, FaCheck, FaExternalLinkAlt } from "react-icons/fa";
 
 const PRIMARY_COLOR = '#4693FF';
 
@@ -8,6 +8,7 @@ interface Message {
   id: string;
   text: string;
   sender: 'user' | 'bot';
+  results?: any[];
 }
 
 export default function Chatbox({ collections }: { collections: Collection[] }) {
@@ -31,6 +32,7 @@ export default function Chatbox({ collections }: { collections: Collection[] }) 
     };
 
     setMessages(prev => [...prev, userMessage]);
+    const currentInput = inputValue;
     setInputValue('');
     setIsLoading(true);
 
@@ -42,7 +44,7 @@ export default function Chatbox({ collections }: { collections: Collection[] }) 
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          message: inputValue,
+          message: currentInput,
           selectedCollections: selectedCollections,
         }),
       });
@@ -54,7 +56,8 @@ export default function Chatbox({ collections }: { collections: Collection[] }) 
         const botMessage: Message = {
           id: (Date.now() + 1).toString(),
           text: data.response,
-          sender: 'bot'
+          sender: 'bot',
+          results: data.results
         };
 
         setMessages(prev => [...prev, botMessage]);
@@ -102,6 +105,61 @@ export default function Chatbox({ collections }: { collections: Collection[] }) 
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
+  const handleDocumentClick = (fileUrl: string) => {
+    window.open(fileUrl, '_blank');
+  };
+
+  const renderMessageContent = (message: Message) => {
+    // Show results in a structured format instead of the formatted text
+    if (message.results && message.results.length > 0) {
+      return (
+        <div>
+          <div className="text-sm leading-relaxed mb-3">
+            Found results for your query: "{message.text.match(/Found results for your query: "(.*?)"/)?.[1] || 'your search'}"
+          </div>
+          <div className="space-y-3">
+            {message.results.map((collectionResult: any, idx: number) => (
+              <div key={idx} className="border-l-2 border-gray-300 pl-3">
+                <h4 className="font-medium text-gray-900 mb-2">{collectionResult.collection}:</h4>
+                <div className="space-y-2">
+                  {collectionResult.results.map((result: any, resultIdx: number) => (
+                    <div key={resultIdx} className="flex items-center justify-between p-2 bg-gray-50 rounded hover:bg-gray-100 transition-colors">
+                      <div className="flex-1 min-w-0">
+                        <button
+                          onClick={() => handleDocumentClick(result.file_url)}
+                          className="text-left w-full group"
+                        >
+                          <div className="flex items-center space-x-2">
+                            <span className="font-medium text-blue-600 hover:text-blue-800 group-hover:underline truncate">
+                              {result.path}
+                            </span>
+                            <FaExternalLinkAlt className="w-3 h-3 text-gray-400 group-hover:text-blue-600 flex-shrink-0" />
+                          </div>
+                          <div className="text-xs text-gray-500 mt-1">
+                            Score: {result.score.toFixed(2)}
+                          </div>
+                        </button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      );
+    }
+
+    // For messages without results, show formatted text
+    const formattedText = message.text.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+    return (
+      <div 
+        className="text-sm leading-relaxed whitespace-pre-line"
+        dangerouslySetInnerHTML={{ __html: formattedText }}
+      />
+    );
+  };
+
   return (
     <main className="flex-1 flex flex-col min-w-0 bg-white">
       <div className="flex-1 overflow-y-auto">
@@ -122,7 +180,11 @@ export default function Chatbox({ collections }: { collections: Collection[] }) 
                     }`}
                     style={message.sender === 'user' ? { backgroundColor: PRIMARY_COLOR } : {}}
                     >
-                      <p className="text-sm leading-relaxed whitespace-pre-line">{message.text}</p>
+                      {message.sender === 'user' ? (
+                        <p className="text-sm leading-relaxed whitespace-pre-line">{message.text}</p>
+                      ) : (
+                        renderMessageContent(message)
+                      )}
                     </div>
                   </div>
                 </div>
@@ -134,7 +196,7 @@ export default function Chatbox({ collections }: { collections: Collection[] }) 
                   <div className="p-3 rounded-lg bg-gray-100 text-gray-800">
                     <div className="flex items-center space-x-2">
                       <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-gray-600"></div>
-                      <p className="text-sm">Thinking...</p>
+                      <p className="text-sm">Searching documents...</p>
                     </div>
                   </div>
                 </div>
@@ -152,6 +214,7 @@ export default function Chatbox({ collections }: { collections: Collection[] }) 
                 type="button"
                 onClick={() => setShowCollections(!showCollections)}
                 className="flex items-center justify-center w-10 h-10 rounded-lg border border-gray-300 hover:bg-gray-50 transition-colors"
+                disabled={isLoading}
               >
                 <FaPlus className="w-4 h-4 text-gray-500" />
               </button>
@@ -200,26 +263,27 @@ export default function Chatbox({ collections }: { collections: Collection[] }) 
             
             <input
               type="text"
-              className="flex-1 border border-gray-300 rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              className="flex-1 border border-gray-300 rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white text-gray-900 placeholder-gray-500"
               placeholder="Ask anything"
               value={inputValue}
               onChange={(e) => setInputValue(e.target.value)}
+              disabled={isLoading}
             />
             <button
               type="submit"
-              disabled={!inputValue.trim()}
+              disabled={!inputValue.trim() || isLoading}
               className={`px-4 py-3 rounded-lg font-medium transition-colors ${
-                inputValue.trim()
+                inputValue.trim() && !isLoading
                   ? 'text-white hover:opacity-90'
                   : 'bg-gray-300 text-gray-500 cursor-not-allowed'
               }`}
-              style={inputValue.trim() ? { backgroundColor: PRIMARY_COLOR } : {}}
+              style={inputValue.trim() && !isLoading ? { backgroundColor: PRIMARY_COLOR } : {}}
             >
-              Send
+              {isLoading ? 'Searching...' : 'Send'}
             </button>
           </form>
 
-          {/* Selected collections display - moved below the form */}
+          {/* Selected collections display */}
           {selectedCollections.length > 0 && (
             <div className="mt-3 flex flex-wrap gap-2">
               {selectedCollections.map((collectionName) => (
@@ -231,6 +295,7 @@ export default function Chatbox({ collections }: { collections: Collection[] }) 
                   <button
                     onClick={() => toggleCollection(collectionName)}
                     className="ml-1 text-blue-600 hover:text-blue-800"
+                    disabled={isLoading}
                   >
                     ×
                   </button>
