@@ -1,8 +1,9 @@
 import React, { useState, useRef, useEffect } from "react";
 import { Collection } from "@/models/model";
-import { FaPlus, FaCheck, FaExternalLinkAlt } from "react-icons/fa";
+import { FaPlus, FaCheck, FaExternalLinkAlt, FaArrowUp } from "react-icons/fa";
 
-const PRIMARY_COLOR = '#4693FF';
+const PRIMARY_COLOR = '#EFF6FF';
+const PRIMARY_COLOR_LIGHT = '#3C74ED';
 
 interface Message {
   id: string;
@@ -120,7 +121,7 @@ export default function Chatbox({ collections }: { collections: Collection[] }) 
     if (message.results && message.results.length > 0) {
       return (
         <div>
-          <div className="text-sm leading-relaxed mb-3">
+          <div className="text-base leading-relaxed mb-3">
             Found results for your query: "{message.text.match(/Found results for your query: "(.*?)"/)?.[1] || 'your search'}"
           </div>
           <div className="space-y-3">
@@ -141,7 +142,7 @@ export default function Chatbox({ collections }: { collections: Collection[] }) 
                             </span>
                             <FaExternalLinkAlt className="w-3 h-3 text-gray-400 group-hover:text-blue-600 flex-shrink-0" />
                           </div>
-                          <div className="text-xs text-gray-500 mt-1">
+                          <div className="text-sm text-gray-500 mt-1">
                             Score: {result.score.toFixed(2)}
                           </div>
                         </button>
@@ -160,7 +161,7 @@ export default function Chatbox({ collections }: { collections: Collection[] }) 
     const formattedText = message.text.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
     return (
       <div 
-        className="text-sm leading-relaxed whitespace-pre-line"
+        className="text-base leading-relaxed whitespace-pre-line"
         dangerouslySetInnerHTML={{ __html: formattedText }}
       />
     );
@@ -173,8 +174,8 @@ export default function Chatbox({ collections }: { collections: Collection[] }) 
         {messages.length === 0 ? (
           <div className="flex items-center justify-center h-full text-gray-500">
             <div className="text-center">
-              <div className="text-lg font-medium mb-2">Welcome to Document Search</div>
-              <div className="text-sm">Start a conversation by typing your question below</div>
+              <div className="text-xl font-medium mb-2">Welcome to Document Search</div>
+              <div className="text-base">Start a conversation by typing your question below</div>
             </div>
           </div>
         ) : (
@@ -186,13 +187,13 @@ export default function Chatbox({ collections }: { collections: Collection[] }) 
                     <div className={`max-w-[85%] ${message.sender === 'user' ? 'max-w-[70%]' : 'max-w-[85%]'}`}>
                       <div className={`p-4 rounded-lg ${
                         message.sender === 'user'
-                          ? 'text-white ml-auto'
-                          : 'bg-gray-100 text-gray-800'
+                          ? 'bg-gray-100 text-black ml-auto'
+                          : 'bg-gray-100 text-black'
                       }`}
                       style={message.sender === 'user' ? { backgroundColor: PRIMARY_COLOR } : {}}
                       >
                         {message.sender === 'user' ? (
-                          <p className="text-sm leading-relaxed whitespace-pre-line">{message.text}</p>
+                          <p className="text-base text-[#3C74ED] leading-relaxed whitespace-pre-line">{message.text}</p>
                         ) : (
                           renderMessageContent(message)
                         )}
@@ -207,7 +208,7 @@ export default function Chatbox({ collections }: { collections: Collection[] }) 
                     <div className="p-4 rounded-lg bg-gray-100 text-gray-800">
                       <div className="flex items-center space-x-2">
                         <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-gray-600"></div>
-                        <p className="text-sm">Searching documents...</p>
+                        <p className="text-base">Searching documents...</p>
                       </div>
                     </div>
                   </div>
@@ -223,80 +224,86 @@ export default function Chatbox({ collections }: { collections: Collection[] }) 
       <div className="flex-shrink-0 border-t border-gray-200 bg-white">
         <div className="max-w-4xl mx-auto p-4">
           <form className="flex gap-3" onSubmit={handleSubmit}>
-            <div className="relative flex items-center" ref={dropdownRef}>
-              <button
-                type="button"
-                onClick={() => setShowCollections(!showCollections)}
-                className="flex items-center justify-center w-10 h-10 rounded-lg border border-gray-300 hover:bg-gray-50 transition-colors"
-                disabled={isLoading}
-                title="Select collections"
-              >
-                <FaPlus className="w-4 h-4 text-gray-500" />
-              </button>
-              
-              {showCollections && (
-                <div className="absolute bottom-12 left-0 w-64 bg-white border border-gray-300 rounded-lg shadow-lg z-10">
-                  <div className="p-3">
-                    <h3 className="text-sm font-medium text-gray-900 mb-2">Select Collections</h3>
-                    <div className="space-y-2 max-h-48 overflow-y-auto">
-                      {collections.length === 0 ? (
-                        <p className="text-sm text-gray-500">No collections available</p>
-                      ) : (
-                        collections.map((collection) => (
-                          <label
-                            key={collection.name}
-                            className="flex items-center space-x-2 cursor-pointer hover:bg-gray-50 p-2 rounded"
-                          >
-                            <div className="relative">
-                              <input
-                                type="checkbox"
-                                className="sr-only"
-                                checked={selectedCollections.includes(collection.name)}
-                                onChange={() => toggleCollection(collection.name)}
-                              />
-                              <div className={`w-4 h-4 rounded border-2 flex items-center justify-center ${
-                                selectedCollections.includes(collection.name)
-                                  ? 'border-blue-500'
-                                  : 'border-gray-300'
-                              }`}
-                              style={selectedCollections.includes(collection.name) ? { backgroundColor: PRIMARY_COLOR } : {}}
-                              >
-                                {selectedCollections.includes(collection.name) && (
-                                  <FaCheck className="w-2 h-2 text-white" />
-                                )}
-                              </div>
-                            </div>
-                            <span className="text-sm text-gray-700">{collection.name}</span>
-                          </label>
-                        ))
-                      )}
-                    </div>
-                  </div>
-                </div>
-              )}
-            </div>
-            
             <div className="flex-1 relative">
-              <input
-                type="text"
-                className="w-full border border-gray-300 rounded-lg px-4 py-3 pr-20 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white text-gray-900 placeholder-gray-500 text-sm"
-                placeholder="Ask anything about your documents..."
-                value={inputValue}
-                onChange={(e) => setInputValue(e.target.value)}
-                disabled={isLoading}
-              />
-              <button
-                type="submit"
-                disabled={!inputValue.trim() || isLoading}
-                className={`absolute right-2 top-1/2 transform -translate-y-1/2 px-4 py-2 rounded-md font-medium text-sm transition-colors ${
-                  inputValue.trim() && !isLoading
-                    ? 'text-white hover:opacity-90'
-                    : 'bg-gray-300 text-gray-500 cursor-not-allowed'
-                }`}
-                style={inputValue.trim() && !isLoading ? { backgroundColor: PRIMARY_COLOR } : {}}
-              >
-                {isLoading ? 'Searching...' : 'Send'}
-              </button>
+              <div className="relative flex items-center bg-white border border-gray-300 rounded-2xl shadow-md hover:shadow-lg transition-shadow">
+                {/* Plus icon inside input box */}
+                <div className="relative" ref={dropdownRef}>
+                  <button
+                    type="button"
+                    onClick={() => setShowCollections(!showCollections)}
+                    className="flex items-center justify-center w-10 h-10 ml-2 rounded-lg hover:bg-gray-100 transition-colors"
+                    disabled={isLoading}
+                    title="Select collections"
+                  >
+                    <FaPlus className="w-4 h-4 text-gray-500" />
+                  </button>
+                  
+                  {showCollections && (
+                    <div className="absolute bottom-16 left-0 w-64 bg-white border border-gray-300 rounded-lg shadow-lg z-10">
+                      <div className="p-3">
+                        <h3 className="text-sm font-medium text-gray-900 mb-2">Select Collections</h3>
+                        <div className="space-y-2 max-h-48 overflow-y-auto">
+                          {collections.length === 0 ? (
+                            <p className="text-sm text-gray-500">No collections available</p>
+                          ) : (
+                            collections.map((collection) => (
+                              <label
+                                key={collection.name}
+                                className="flex items-center space-x-2 cursor-pointer hover:bg-gray-50 p-2 rounded"
+                              >
+                                <div className="relative">
+                                  <input
+                                    type="checkbox"
+                                    className="sr-only"
+                                    checked={selectedCollections.includes(collection.name)}
+                                    onChange={() => toggleCollection(collection.name)}
+                                  />
+                                  <div className={`w-4 h-4 rounded border-2 flex items-center justify-center ${
+                                    selectedCollections.includes(collection.name)
+                                      ? 'border-[#3C74ED] bg-[#3C74ED]'
+                                      : 'border-gray-300'
+                                  }`}
+                                  style={selectedCollections.includes(collection.name) ? { backgroundColor: PRIMARY_COLOR } : {}}
+                                  >
+                                    {selectedCollections.includes(collection.name) && (
+                                      <FaCheck className="w-2 h-2 text-[#3C74ED]" />
+                                    )}
+                                  </div>
+                                </div>
+                                <span className="text-sm text-gray-700">{collection.name}</span>
+                              </label>
+                            ))
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  )}
+                </div>
+
+                {/* Input field */}
+                <input
+                  type="text"
+                  className="flex-1 px-4 py-4 pr-16 focus:outline-none bg-transparent text-gray-900 placeholder-gray-500 text-base"
+                  placeholder="Ask anything about your documents..."
+                  value={inputValue}
+                  onChange={(e) => setInputValue(e.target.value)}
+                  disabled={isLoading}
+                />
+
+                {/* Send button with up arrow icon */}
+                <button
+                  type="submit"
+                  disabled={!inputValue.trim() || isLoading}
+                  className={`absolute right-2 top-1/2 transform -translate-y-1/2 w-10 h-10 rounded-full flex items-center justify-center transition-colors shadow-sm ${
+                    inputValue.trim() && !isLoading
+                      ? 'text-white hover:opacity-90'
+                      : 'bg-gray-300 text-gray-500 cursor-not-allowed'
+                  }`}
+                  style={inputValue.trim() && !isLoading ? { backgroundColor: PRIMARY_COLOR_LIGHT } : {}}
+                >
+                  <FaArrowUp className="w-4 h-4" />
+                </button>
+              </div>
             </div>
           </form>
 
@@ -306,7 +313,7 @@ export default function Chatbox({ collections }: { collections: Collection[] }) 
               {selectedCollections.map((collectionName) => (
                 <span
                   key={collectionName}
-                  className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800"
+                  className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-blue-100 text-blue-800"
                 >
                   {collectionName}
                   <button
